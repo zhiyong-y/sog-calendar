@@ -20,6 +20,11 @@ const getDate = (year, month, day) => {
   return new Date(year, month, day);
 };
 
+/**
+ *
+ * @param {时间} date
+ * @returns 农历时间
+ */
 const getLunar = (date) => {
   let CalendarData = new Array(100);
   let madd = new Array(12);
@@ -215,7 +220,6 @@ const getLunar = (date) => {
     } else {
       solarMonth = parseInt(solarMonth) > 0 ? solarMonth - 1 : 11;
       e2c(solarYear, solarMonth, solarDay);
-      console.log(GetcDateString());
       return GetcDateString();
     }
   }
@@ -224,7 +228,6 @@ const getLunar = (date) => {
   let mm = date.getMonth() + 1;
   let dd = date.getDate();
   if (yy < 100) yy = "19" + yy;
-
   return GetLunarDay(yy, mm, dd);
 };
 export { getYearMonthDay, getDate, getLunar };

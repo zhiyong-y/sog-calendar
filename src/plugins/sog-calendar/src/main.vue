@@ -2,8 +2,14 @@
   <div class="calendar-box">
     <div class="select-mode"></div>
     <div class="tools-box flex">
-      <div class="con-tips flex-1">{{ year }}年{{ month }}月</div>
-      <div class="switch-box flex-1"></div>
+      <div class="con-tips flex-10">{{ year }}年{{ month + 1 }}月</div>
+      <div class="switch-box flex-1 flex">
+        <div class="pre-btn flex-1 iconfont" @click="getPreDate">&#xe603;</div>
+        <div class="now-btn flex-1" @click="getNowDate">今天</div>
+        <div class="next-btn flex-1 iconfont" @click="getNextDate">
+          &#xe61f;
+        </div>
+      </div>
     </div>
     <div class="weeks-box flex">
       <div class="week flex-1" v-for="(item, index) in weekLabel" :key="index">
@@ -17,7 +23,7 @@
         :key="index"
         :class="[
           { 'no-current-month': !isCurrentMonth(item.date) },
-          { today: isCurrentDay(item.day) },
+          { today: isCurrentDay(item.year, item.month, item.day) },
           { weekend: isWeekend(item.week) },
         ]"
       >
@@ -31,7 +37,7 @@
 </template>
 
 <script>
-import { getYearMonthDay, getDate, getLunar } from "../util/util"
+import { getYearMonthDay, getDate, getLunar } from "../util/util";
 export default {
   name: "SogCalendar",
   props: {
@@ -52,7 +58,7 @@ export default {
     };
   },
   created() {
-    this.initCalendar();
+    this.initCalendar(new Date());
   },
   methods: {
     /**
@@ -61,9 +67,11 @@ export default {
      * 3. 判断当月第一天是周几
      * 4. 用上月的最后几天补全
      */
-    initCalendar() {
+    initCalendar(date) {
+      // clear arr
+      this.calendarArr = [];
       // 当前年月日
-      let { year, month } = getYearMonthDay(new Date());
+      let { year, month } = getYearMonthDay(date);
       this.year = year;
       this.month = month;
       // 当月第一天
@@ -94,18 +102,42 @@ export default {
       }
     },
     isCurrentMonth(date) {
-      let { year: curYear, month: curMonth } = getYearMonthDay(new Date());
+      // let { year: curYear, month: curMonth } = getYearMonthDay(new Date());
       let { year, month } = getYearMonthDay(date);
-
-      return curYear === year && curMonth === month;
+      return this.year === year && this.month === month;
     },
-    isCurrentDay(day) {
-      let { day: curDay } = getYearMonthDay(new Date());
-      return day === curDay;
+    isCurrentDay(year, month, day) {
+      let {
+        year: curYear,
+        month: curMonth,
+        day: curDay,
+      } = getYearMonthDay(new Date());
+      return year === curYear && month === curMonth + 1 && day === curDay;
     },
     isWeekend(week) {
       return week === 0 || week === 6;
-    }
+    },
+    getPreDate() {
+      let _pre = null;
+      if (this.month === 1) {
+        _pre = getDate(this.year - 1, 12, 1);
+      } else {
+        _pre = getDate(this.year, this.month - 1, 1);
+      }
+      this.initCalendar(_pre);
+    },
+    getNextDate() {
+      let _next = null;
+      if (this.month === 12) {
+        _next = getDate(this.year + 1, 1, 1);
+      } else {
+        _next = getDate(this.year, this.month + 1, 1);
+      }
+      this.initCalendar(_next);
+    },
+    getNowDate() {
+      this.initCalendar(new Date());
+    },
   },
 };
 </script>
@@ -118,12 +150,50 @@ export default {
   min-height: 600px;
   border-bottom: 1px solid var(--border-color);
 }
+/* 当前月份展示title */
 .tools-box .con-tips {
   text-align: left;
   font-size: var(--title-font-size);
   font-weight: 500;
   padding: 6px 0;
 }
+/* 切换月份 */
+.tools-box .switch-box {
+  text-align: right;
+}
+.tools-box .switch-box > div {
+  text-align: center;
+  line-height: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0;
+  color: #333;
+}
+.tools-box .switch-box > div:hover {
+  background: #f4f4f4;
+}
+.tools-box .switch-box .pre-btn,
+.tools-box .switch-box .next-btn {
+  width: 20px;
+  min-width: 20px;
+  max-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  max-height: 20px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+}
+.tools-box .switch-box .now-btn {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  height: 20px;
+  min-height: 20px;
+  max-height: 20px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+}
+
 .calendar-box .date-box,
 .calendar-box .weeks-box {
   flex-wrap: wrap;
