@@ -228,6 +228,8 @@ const getLunar = (date) => {
   let mm = date.getMonth() + 1;
   let dd = date.getDate();
   if (yy < 100) yy = "19" + yy;
+  // eslint-disable-next-line no-debugger
+  // debugger;
   return GetLunarDay(yy, mm, dd);
 };
 export { getYearMonthDay, getDate, getLunar };

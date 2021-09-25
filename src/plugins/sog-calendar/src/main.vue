@@ -26,6 +26,8 @@
           { today: isCurrentDay(item.year, item.month, item.day) },
           { weekend: isWeekend(item.week) },
         ]"
+        @click="handleClick"
+        @dblclick="handleDbClick"
       >
         <div class="date-label flex">
           <span class="flex-1">{{ item.day }}</span>
@@ -138,6 +140,12 @@ export default {
     getNowDate() {
       this.initCalendar(new Date());
     },
+    handleClick() {
+      console.log("click");
+    },
+    handleDbClick() {
+      console.log("dbclick");
+    },
   },
 };
 </script>
@@ -147,7 +155,6 @@ export default {
 .calendar-box {
   width: 840px;
   min-width: 840px;
-  min-height: 600px;
   border-bottom: 1px solid var(--border-color);
 }
 /* 当前月份展示title */
@@ -219,6 +226,9 @@ export default {
   border-top: 1px solid var(--border-color);
   border-left: 1px solid var(--border-color);
   cursor: pointer;
+}
+.calendar-box .date-box > .day:hover {
+  background: #f4f4f4;
 }
 .calendar-box .date-box > .day:nth-child(7n) {
   border-right: 1px solid var(--border-color);
