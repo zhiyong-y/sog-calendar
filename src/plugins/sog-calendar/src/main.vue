@@ -129,7 +129,9 @@ export default {
         dateObj.day = _date.getDate();
         dateObj.week = dateObj.date.getDay();
         // 处理农历月份
-        dateObj.lunar = calendar(_date).lunarDayCn;
+        dateObj.lunar = calendar(_date).lunarDayCn.includes("初一")
+          ? calendar(_date).lunarMonthCn + calendar(_date).lunarDayCn
+          : calendar(_date).lunarDayCn;
         // 当日对应节气
         dateObj.solarTerm = calendar(_date).solarTerm;
         this.calendarArr.push(dateObj);
