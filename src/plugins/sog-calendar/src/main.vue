@@ -33,13 +33,15 @@
           <span class="flex-1">{{ item.day }}</span>
           <span class="flex-1">{{ item.lunar }}</span>
         </div>
+        <div class="flex-1">{{ item.solarTerm }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { getYearMonthDay, getDate, getLunar } from "../util/util";
+import { getYearMonthDay, getDate } from "../util/util";
+import calendar from "../util/Calendar";
 export default {
   name: "SogCalendar",
   props: {
@@ -87,19 +89,17 @@ export default {
       for (let i = 0; i < this.days; i++) {
         let dateObj = {};
         let _date = new Date(startDate + i * 24 * 3600 * 1000);
-
+        console.log(calendar(_date).solarTerm);
         dateObj.date = _date;
         dateObj.year = year;
         dateObj.month = month + 1;
         dateObj.day = _date.getDate();
         dateObj.week = dateObj.date.getDay();
         // 处理农历月份
-        let _t = getLunar(_date);
-        if (_t.includes("初一")) {
-          dateObj.lunar = _t.substr(_t.indexOf("初一") - 2);
-        } else {
-          dateObj.lunar = _t.substr(_t.indexOf("初一") - 1);
-        }
+        dateObj.lunar = calendar(_date).lunarDayCn;
+        // 当日对应节气
+        dateObj.solarTerm = calendar(_date).solarTerm;
+
         this.calendarArr.push(dateObj);
       }
     },

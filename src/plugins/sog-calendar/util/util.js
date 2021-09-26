@@ -208,7 +208,8 @@ const getLunar = (date) => {
       tmp += monString.charAt(cMonth - 1);
     }
     tmp += "月";
-    tmp += cDay < 11 ? "初" : cDay < 20 ? "十" : cDay < 30 ? "廿" : "三十";
+    // eslint-disable-next-line prettier/prettier
+    tmp += cDay < 11 ? "初" : cDay < 20 ? "十" : cDay == 20 ? "廿十" : cDay < 30 ? "廿" : "三十";
     if (cDay % 10 != 0 || cDay == 10) {
       tmp += numString.charAt((cDay - 1) % 10);
     }
@@ -218,8 +219,8 @@ const getLunar = (date) => {
     if (solarYear < 1921) {
       return "";
     } else {
-      solarMonth = parseInt(solarMonth) > 0 ? solarMonth - 1 : 11;
-      e2c(solarYear, solarMonth, solarDay);
+      // solarMonth = parseInt(solarMonth) > 0 ? solarMonth - 1 : 11;
+      e2c(solarYear, solarMonth - 1, solarDay);
       return GetcDateString();
     }
   }
