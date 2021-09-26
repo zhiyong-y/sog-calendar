@@ -135,7 +135,6 @@ export default {
         // 当日对应节气
         dateObj.solarTerm = calendar(_date).solarTerm;
         this.calendarArr.push(dateObj);
-        console.log(dateObj);
       }
       // 日历数据准备完成后匹配日程数据
       scheduleHandle(this.calendarArr, this.scheduleArr, this.$set);
