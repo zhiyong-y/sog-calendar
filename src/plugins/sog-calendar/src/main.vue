@@ -24,9 +24,10 @@
         :class="[
           { 'no-current-month': !isCurrentMonth(item.date) },
           { today: isCurrentDay(item.year, item.month, item.day) },
+          { active: currentSelected == item },
           { weekend: isWeekend(item.week) },
         ]"
-        @click="handleClick"
+        @click="handleClick(item)"
         @dblclick="handleDbClick"
       >
         <!-- 农历日期 -->
@@ -93,6 +94,7 @@ export default {
       year: null,
       month: null,
       timer: null,
+      currentSelected: null,
     };
   },
   created() {
@@ -109,7 +111,7 @@ export default {
       // clear arr
       this.calendarArr = [];
       // 当前年月日
-      let { year, month } = getYearMonthDay(date);
+      let { year, month, day } = getYearMonthDay(date);
       this.year = year;
       this.month = month;
       // 当月第一天
@@ -134,6 +136,16 @@ export default {
           : calendar(_date).lunarDayCn;
         // 当日对应节气
         dateObj.solarTerm = calendar(_date).solarTerm;
+
+        // 默认当日选中
+        if (
+          dateObj.year === year &&
+          dateObj.month === month + 1 &&
+          dateObj.day === day
+        ) {
+          this.currentSelected = dateObj;
+        }
+
         this.calendarArr.push(dateObj);
       }
       // 日历数据准备完成后匹配日程数据
@@ -176,18 +188,25 @@ export default {
     getNowDate() {
       this.initCalendar(new Date());
     },
-    handleClick() {
-      let timers = this.timer;
-      if (timers) {
-        clearTimeout(timers);
-        this.timer = null;
-      } else {
-        this.timer = setTimeout(() => {
-          console.log("click");
-          // 框选当前点击
+    handleClick(selectedDay) {
+      // let timers = this.timer;
+      // if (timers) {
+      //   clearTimeout(timers);
+      //   this.timer = null;
+      // } else {
+      //   this.timer = setTimeout(() => {
+      //     console.log("click");
+      //     // 框选当前点击
+      //     console.log(this.currentSelected);
+      //     this.currentSelected = selectedDay;
+      //     console.log(this.currentSelected);
+      //   }, 300);
+      // }
 
-        }, 300);
-      }
+      console.log(this.currentSelected);
+      this.currentSelected = selectedDay;
+      console.log(this.currentSelected);
+      this.$forceUpdate()
     },
     handleDbClick() {
       let timers = this.timer;
@@ -364,9 +383,9 @@ export default {
 .no-current-month {
   color: #c8c8c8;
 }
-/* .calendar-box .date-box > .day.today.active {
+.calendar-box .date-box > .day.active {
   border: 2px solid red;
-} */
+}
 .calendar-box .date-box > .day.today .date-label > span:nth-child(1) {
   display: block;
   width: 25px;

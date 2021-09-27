@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png" />
-    <SogCalendar :scheduleArr="scheduleArr" style="margin: 0 auto" />
+    <SogCalendar :scheduleArr="scheduleArr" style="margin: 50px auto" />
   </div>
 </template>
 
