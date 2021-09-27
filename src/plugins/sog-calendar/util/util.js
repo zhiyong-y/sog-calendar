@@ -19,6 +19,9 @@ const getYearMonthDay = (date) => {
 const getDate = (year, month, day) => {
   return new Date(year, month, day);
 };
+const getDateByFormatter = (str) => {
+  return new Date(str);
+};
 /**
  *
  * @param {当月日历数组} calendarArr
@@ -46,4 +49,34 @@ const scheduleHandle = (calendarArr, scheduleArr, $set) => {
   });
   return calendarArr;
 };
-export { getYearMonthDay, getDate, scheduleHandle };
+/**
+ *
+ * @param {当月日历数组} calendarArr
+ * @param {当月签到数据} signArr
+ * @param {强制更新} $set
+ * @returns 匹配好的日历数组
+ */
+const signHandle = (calendarArr, signArr, $set) => {
+  calendarArr = calendarArr.map((item) => {
+    signArr.map((s) => {
+      // console.log(getDateByFormatter(s.date));
+      // console.log(getDateByFormatter(item));
+      // console.log(item);
+      let _bool2 = getDateByFormatter(s.date) === item.date;
+      let _bool =
+        s.date ===
+        item.year +
+          "-" +
+          item.month.toString().padStart(2, "0") +
+          "-" +
+          item.day.toString().padStart(2, "0");
+      console.log(_bool2);
+      if (_bool) {
+        // 大于当前时间不展示是否已经签到
+        $set(item, "isSign", s.isSignIn);
+      }
+    });
+  });
+  return calendarArr;
+};
+export { getYearMonthDay, getDate, scheduleHandle, signHandle };

@@ -2,14 +2,12 @@
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png" />
     <SogCalendar
+      :signArr="signArr"
       :scheduleArr="scheduleArr"
-      :isDisplaySolarTerm="false"
+      :isDisplaySolarTerm="true"
       style="margin: 50px auto"
       @click="handleClick"
     >
-      <!-- <div slot="signin" class="slot">
-        <img src="../src/assets/yiqiandao.png" alt="signin">
-      </div> -->
     </SogCalendar>
   </div>
 </template>
@@ -24,6 +22,13 @@ export default {
         // { name: "测试日程安排1", id: 2, date: "2021-09-05" },
         // { name: "测试日程安排1", id: 3, date: "2021-09-05" },
         // { name: "测试日程安排1", id: 4, date: "2021-09-18" },
+      ],
+      signArr: [
+        // { date: "2021-09-04", isSignIn: 1 },
+        // { date: "2021-09-05", isSignIn: 1 },
+        // { date: "2021-09-06", isSignIn: 0 },
+        // { date: "2021-09-07", isSignIn: 1 },
+        // { date: "2021-09-08", isSignIn: 1 },
       ],
     };
   },

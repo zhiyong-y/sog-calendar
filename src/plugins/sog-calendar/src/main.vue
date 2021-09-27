@@ -58,6 +58,18 @@
             查看更多
           </div>
         </div>
+        <div class="signin">
+          <img
+            src="../img/yiqiandao.png"
+            alt="signin"
+            v-if="item.isSign === 1"
+          />
+          <img
+            src="../img/weiqiandao.png"
+            alt="signin"
+            v-else-if="item.isSign === 0"
+          />
+        </div>
         <!-- 扩展插槽 -->
         <slot name="signin"></slot>
         <transition name="slide-fade">
@@ -69,7 +81,12 @@
 </template>
 
 <script>
-import { getYearMonthDay, getDate, scheduleHandle } from "../util/util";
+import {
+  getYearMonthDay,
+  getDate,
+  scheduleHandle,
+  signHandle,
+} from "../util/util";
 import calendar from "../util/Calendar";
 import popover from "./popover.vue";
 export default {
@@ -78,12 +95,13 @@ export default {
   },
   name: "SogCalendar",
   props: {
+    /**
+     * 星期展示label
+     */
     weekLabel: {
       type: Array,
       required: false,
-      default: () => {
-        return ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-      },
+      default: () => ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
     },
     /**
      * 当月的日程数组
@@ -91,14 +109,24 @@ export default {
     scheduleArr: {
       type: Array,
       required: false,
-      default: () => {
-        return [];
-      },
+      default: () => [],
     },
+    /**
+     * 是否展示二十四节气
+     */
     isDisplaySolarTerm: {
       type: Boolean,
       required: false,
       default: true,
+    },
+    /**
+     * 签到数据数组
+     * 相应的业务场景，有需要传数组
+     */
+    signArr: {
+      type: Array,
+      required: false,
+      default: () => [],
     },
   },
   data() {
@@ -107,6 +135,7 @@ export default {
       calendarArr: [],
       year: null,
       month: null,
+      day: null,
       timer: null,
       currentSelected: null,
       open: false,
@@ -129,6 +158,7 @@ export default {
       let { year, month, day } = getYearMonthDay(date);
       this.year = year;
       this.month = month;
+      this.day = day;
       // 当月第一天
       let currentMonthFirstDay = getDate(year, month, 1);
       // 当月第一天周几
@@ -162,11 +192,12 @@ export default {
         ) {
           this.currentSelected = dateObj;
         }
-
         this.calendarArr.push(dateObj);
       }
       // 日历数据准备完成后匹配日程数据
       scheduleHandle(this.calendarArr, this.scheduleArr, this.$set);
+      // 匹配签到数据
+      signHandle(this.calendarArr, this.signArr, this.$set);
     },
     isCurrentMonth(date) {
       // let { year: curYear, month: curMonth } = getYearMonthDay(new Date());
@@ -187,18 +218,18 @@ export default {
     getPreDate() {
       let _pre = null;
       if (this.month === 1) {
-        _pre = getDate(this.year - 1, 12, 1);
+        _pre = getDate(this.year - 1, 12, this.day);
       } else {
-        _pre = getDate(this.year, this.month - 1, 1);
+        _pre = getDate(this.year, this.month - 1, this.day);
       }
       this.initCalendar(_pre);
     },
     getNextDate() {
       let _next = null;
       if (this.month === 12) {
-        _next = getDate(this.year + 1, 1, 1);
+        _next = getDate(this.year + 1, 1, this.day);
       } else {
-        _next = getDate(this.year, this.month + 1, 1);
+        _next = getDate(this.year, this.month + 1, this.day);
       }
       this.initCalendar(_next);
     },
@@ -211,11 +242,13 @@ export default {
         clearTimeout(timers);
         this.timer = null;
         this.currentSelected = selectedDay;
-        this.open = this.open ? false : true;
+        // this.open = this.open ? false : true;
       } else {
         this.timer = setTimeout(() => {
           this.currentSelected = selectedDay;
-          this.open = this.open ? false : true;
+          // this.open = this.open ? false : true;
+          // 更新当前点击时间
+          this.day = selectedDay.day;
         });
       }
       this.$emit("click", e);
@@ -322,7 +355,7 @@ export default {
 .calendar-box
   .date-box
   > .day
-  > div:not(.date-label):not(.schedule-box):not(.slot):not(.popover) {
+  > div:not(.date-label):not(.schedule-box):not(.slot):not(.popover):not(.signin) {
   width: 90%;
   min-width: 90%;
   max-width: 90%;
@@ -430,5 +463,14 @@ export default {
 /* .slide-fade-leave-active for below version 2.1.8 */ {
   transform: translateX(10px);
   opacity: 0;
+}
+
+.signin {
+  width: 100%;
+  height: 66px;
+  padding: 0 10px 15px 10px;
+}
+.signin > img {
+  height: 100%;
 }
 </style>
