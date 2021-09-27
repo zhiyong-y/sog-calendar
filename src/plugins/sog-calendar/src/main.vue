@@ -27,7 +27,7 @@
           { active: currentSelected == item },
           { weekend: isWeekend(item.week) },
         ]"
-        @click="handleClick(item)"
+        @click="handleClick(item, $event)"
         @dblclick="handleDbClick"
       >
         <!-- 农历日期 -->
@@ -58,6 +58,11 @@
             查看更多
           </div>
         </div>
+        <!-- 扩展插槽 -->
+        <slot name="signin"></slot>
+        <transition name="slide-fade">
+          <popover v-if="currentSelected == item && open"></popover>
+        </transition>
       </div>
     </div>
   </div>
@@ -66,7 +71,11 @@
 <script>
 import { getYearMonthDay, getDate, scheduleHandle } from "../util/util";
 import calendar from "../util/Calendar";
+import popover from "./popover.vue";
 export default {
+  components: {
+    popover,
+  },
   name: "SogCalendar",
   props: {
     weekLabel: {
@@ -86,6 +95,11 @@ export default {
         return [];
       },
     },
+    isDisplaySolarTerm: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
   },
   data() {
     return {
@@ -95,6 +109,7 @@ export default {
       month: null,
       timer: null,
       currentSelected: null,
+      open: false,
     };
   },
   created() {
@@ -135,7 +150,9 @@ export default {
           ? calendar(_date).lunarMonthCn + calendar(_date).lunarDayCn
           : calendar(_date).lunarDayCn;
         // 当日对应节气
-        dateObj.solarTerm = calendar(_date).solarTerm;
+        this.isDisplaySolarTerm
+          ? (dateObj.solarTerm = calendar(_date).solarTerm)
+          : null;
 
         // 默认当日选中
         if (
@@ -188,25 +205,20 @@ export default {
     getNowDate() {
       this.initCalendar(new Date());
     },
-    handleClick(selectedDay) {
-      // let timers = this.timer;
-      // if (timers) {
-      //   clearTimeout(timers);
-      //   this.timer = null;
-      // } else {
-      //   this.timer = setTimeout(() => {
-      //     console.log("click");
-      //     // 框选当前点击
-      //     console.log(this.currentSelected);
-      //     this.currentSelected = selectedDay;
-      //     console.log(this.currentSelected);
-      //   }, 300);
-      // }
-
-      console.log(this.currentSelected);
-      this.currentSelected = selectedDay;
-      console.log(this.currentSelected);
-      this.$forceUpdate()
+    handleClick(selectedDay, e) {
+      let timers = this.timer;
+      if (timers) {
+        clearTimeout(timers);
+        this.timer = null;
+        this.currentSelected = selectedDay;
+        this.open = this.open ? false : true;
+      } else {
+        this.timer = setTimeout(() => {
+          this.currentSelected = selectedDay;
+          this.open = this.open ? false : true;
+        });
+      }
+      this.$emit("click", e);
     },
     handleDbClick() {
       let timers = this.timer;
@@ -307,7 +319,10 @@ export default {
 }
 /** 节气以及日程 */
 /* .calendar-box .date-box > .day > div:not(.date-label), */
-.calendar-box .date-box > .day > div:not(.date-label):not(.schedule-box) {
+.calendar-box
+  .date-box
+  > .day
+  > div:not(.date-label):not(.schedule-box):not(.slot):not(.popover) {
   width: 90%;
   min-width: 90%;
   max-width: 90%;
@@ -362,6 +377,7 @@ export default {
   margin-top: 4px;
   cursor: pointer;
 }
+
 .calendar-box .weeks-box > .week {
   width: 120px;
   min-width: 120px;
@@ -401,5 +417,18 @@ export default {
 }
 .weekend {
   background: #f4f4f4;
+}
+
+/* vue组件动画 */
+.slide-fade-enter-active {
+  transition: all 0.3s ease;
+}
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter, .slide-fade-leave-to
+/* .slide-fade-leave-active for below version 2.1.8 */ {
+  transform: translateX(10px);
+  opacity: 0;
 }
 </style>
