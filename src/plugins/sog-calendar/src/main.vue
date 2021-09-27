@@ -24,23 +24,47 @@
         :class="[
           { 'no-current-month': !isCurrentMonth(item.date) },
           { today: isCurrentDay(item.year, item.month, item.day) },
+          { active: currentSelected == item },
           { weekend: isWeekend(item.week) },
         ]"
-        @click="handleClick"
+        @click="handleClick(item)"
         @dblclick="handleDbClick"
       >
+        <!-- 农历日期 -->
         <div class="date-label flex">
           <span class="flex-1">{{ item.day }}</span>
           <span class="flex-1">{{ item.lunar }}</span>
         </div>
-        <div class="flex-1">{{ item.solarTerm }}</div>
+        <!-- 二十四节气 -->
+        <div
+          class="solar-term flex-1"
+          v-if="item.solarTerm && item.solarTerm != ''"
+        >
+          {{ item.solarTerm }}
+        </div>
+        <!-- 当日日程，如果当日日程大于4，点击查看详情 -->
+        <div
+          class="schedule-box"
+          v-if="item.schedule && item.schedule.length > 0"
+        >
+          <div
+            class="schedule-item flex-1"
+            v-for="(s, i) in item.schedule.slice(0, 2)"
+            :key="i"
+          >
+            {{ s.name }}
+          </div>
+          <div class="schedule-tips" v-if="item.schedule.length > 2">
+            查看更多
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { getYearMonthDay, getDate } from "../util/util";
+import { getYearMonthDay, getDate, scheduleHandle } from "../util/util";
 import calendar from "../util/Calendar";
 export default {
   name: "SogCalendar",
@@ -52,6 +76,16 @@ export default {
         return ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
       },
     },
+    /**
+     * 当月的日程数组
+     */
+    scheduleArr: {
+      type: Array,
+      required: false,
+      default: () => {
+        return [];
+      },
+    },
   },
   data() {
     return {
@@ -59,6 +93,8 @@ export default {
       calendarArr: [],
       year: null,
       month: null,
+      timer: null,
+      currentSelected: null,
     };
   },
   created() {
@@ -75,7 +111,7 @@ export default {
       // clear arr
       this.calendarArr = [];
       // 当前年月日
-      let { year, month } = getYearMonthDay(date);
+      let { year, month, day } = getYearMonthDay(date);
       this.year = year;
       this.month = month;
       // 当月第一天
@@ -89,19 +125,31 @@ export default {
       for (let i = 0; i < this.days; i++) {
         let dateObj = {};
         let _date = new Date(startDate + i * 24 * 3600 * 1000);
-        console.log(calendar(_date).solarTerm);
         dateObj.date = _date;
-        dateObj.year = year;
-        dateObj.month = month + 1;
+        dateObj.year = _date.getFullYear();
+        dateObj.month = _date.getMonth() + 1;
         dateObj.day = _date.getDate();
         dateObj.week = dateObj.date.getDay();
         // 处理农历月份
-        dateObj.lunar = calendar(_date).lunarDayCn;
+        dateObj.lunar = calendar(_date).lunarDayCn.includes("初一")
+          ? calendar(_date).lunarMonthCn + calendar(_date).lunarDayCn
+          : calendar(_date).lunarDayCn;
         // 当日对应节气
         dateObj.solarTerm = calendar(_date).solarTerm;
 
+        // 默认当日选中
+        if (
+          dateObj.year === year &&
+          dateObj.month === month + 1 &&
+          dateObj.day === day
+        ) {
+          this.currentSelected = dateObj;
+        }
+
         this.calendarArr.push(dateObj);
       }
+      // 日历数据准备完成后匹配日程数据
+      scheduleHandle(this.calendarArr, this.scheduleArr, this.$set);
     },
     isCurrentMonth(date) {
       // let { year: curYear, month: curMonth } = getYearMonthDay(new Date());
@@ -140,10 +188,32 @@ export default {
     getNowDate() {
       this.initCalendar(new Date());
     },
-    handleClick() {
-      console.log("click");
+    handleClick(selectedDay) {
+      // let timers = this.timer;
+      // if (timers) {
+      //   clearTimeout(timers);
+      //   this.timer = null;
+      // } else {
+      //   this.timer = setTimeout(() => {
+      //     console.log("click");
+      //     // 框选当前点击
+      //     console.log(this.currentSelected);
+      //     this.currentSelected = selectedDay;
+      //     console.log(this.currentSelected);
+      //   }, 300);
+      // }
+
+      console.log(this.currentSelected);
+      this.currentSelected = selectedDay;
+      console.log(this.currentSelected);
+      this.$forceUpdate()
     },
     handleDbClick() {
+      let timers = this.timer;
+      if (timers) {
+        clearTimeout(timers);
+        this.timer = null;
+      }
       console.log("dbclick");
     },
   },
@@ -205,6 +275,26 @@ export default {
 .calendar-box .weeks-box {
   flex-wrap: wrap;
 }
+
+/* 每天的容器 */
+.calendar-box .date-box > .day {
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
+  height: 100px;
+  min-height: 100px;
+  max-height: 100px;
+  border-top: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+  /* cursor: pointer; */
+}
+.calendar-box .date-box > .day:hover {
+  background: #f4f4f4;
+}
+.calendar-box .date-box > .day:nth-child(7n) {
+  border-right: 1px solid var(--border-color);
+}
+/** 农历日期 */
 .calendar-box .date-box .date-label {
   padding: 6px 6px;
 }
@@ -215,25 +305,63 @@ export default {
   font-size: 12px;
   text-align: right;
 }
-
-.calendar-box .date-box > .day {
-  width: 120px;
-  min-width: 120px;
-  max-width: 120px;
-  height: 100px;
-  min-height: 100px;
-  max-height: 100px;
-  border-top: 1px solid var(--border-color);
-  border-left: 1px solid var(--border-color);
+/** 节气以及日程 */
+/* .calendar-box .date-box > .day > div:not(.date-label), */
+.calendar-box .date-box > .day > div:not(.date-label):not(.schedule-box) {
+  width: 90%;
+  min-width: 90%;
+  max-width: 90%;
+  height: 18px;
+  min-height: 18px;
+  max-height: 18px;
+  margin: 0 auto;
+  line-height: 14px;
+  font-size: 12px;
+  text-align: left;
+  padding: 2px 4px;
+  box-sizing: border-box;
+  color: #333;
+  border-radius: 2px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.calendar-box .date-box .solar-term {
+  background: #d9f4d1;
+}
+/**日程 */
+.calendar-box .date-box .schedule-box {
+  width: 90%;
+  min-width: 90%;
+  max-width: 90%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  color: #333;
+}
+.calendar-box .date-box .schedule-item {
+  height: 18px;
+  min-height: 18px;
+  max-height: 18px;
+  line-height: 14px;
+  font-size: 12px;
+  text-align: left;
+  padding: 2px 4px;
+  background: #bf56d9;
+  border-radius: 2px;
+  margin-bottom: 2px;
+}
+.calendar-box .date-box .schedule-tips {
+  height: 18px;
+  min-height: 18px;
+  max-height: 18px;
+  line-height: 14px;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  margin-top: 4px;
   cursor: pointer;
 }
-.calendar-box .date-box > .day:hover {
-  background: #f4f4f4;
-}
-.calendar-box .date-box > .day:nth-child(7n) {
-  border-right: 1px solid var(--border-color);
-}
-
 .calendar-box .weeks-box > .week {
   width: 120px;
   min-width: 120px;
@@ -255,7 +383,10 @@ export default {
 .no-current-month {
   color: #c8c8c8;
 }
-.today .date-label > span:nth-child(1) {
+.calendar-box .date-box > .day.active {
+  border: 2px solid red;
+}
+.calendar-box .date-box > .day.today .date-label > span:nth-child(1) {
   display: block;
   width: 25px;
   height: 25px;
